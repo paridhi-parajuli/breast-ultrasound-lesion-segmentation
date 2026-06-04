@@ -32,7 +32,7 @@ jobs:
           cd deploy
           git init -b main
           git lfs install
-          git lfs track "*.pth"            # HF requires LFS for files > 10 MB
+          git lfs track "*.pth" "*.png" "*.jpg"   # HF requires LFS for ALL binary files
           git add .
           git -c user.name=github-actions -c user.email=actions@users.noreply.github.com \
               commit -m "Deploy from GitHub ${GITHUB_SHA::7}"
