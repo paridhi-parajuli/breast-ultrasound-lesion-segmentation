@@ -12,9 +12,7 @@ license: mit
 # Breast Ultrasound U-Net — Lesion Segmentation
 
 ResNet34 U-Net that, given a breast-ultrasound image, returns a **lesion
-segmentation mask** (overlaid in red) plus lesion area and confidence stats.
-![alt text](static/image-1.png)
-
+segmentation mask** with lesion area and confidence stats.
 
 Build this repo as a Docker Space and serve on port 7860.
 
