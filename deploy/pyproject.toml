@@ -1,0 +1,26 @@
+[project]
+name = "busi-unet-app"
+version = "1.0.0"
+description = "FastAPI server for the BUSI multi-task U-Net (segmentation + classification)"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.34.0",
+    "python-multipart==0.0.20",
+    "pillow==11.1.0",
+    "numpy==2.2.1",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "segmentation-models-pytorch==0.5.0",
+]
+
+# CPU-only torch wheels keep the image small and run on free HF Spaces.
+# uv resolves torch/torchvision from PyTorch's CPU index below.
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

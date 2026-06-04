@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
+
+# MLflow runs (if re-enabled)
+mlruns/
+
+# uv lockfile is intentionally NOT ignored — keep builds reproducible

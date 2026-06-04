@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Breast Ultrasound — Lesion Segmentation</title>
+  <style>
+    :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+           background: var(--bg); color: var(--text); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 60px; }
+    h1 { font-size: 1.6rem; margin-bottom: 4px; }
+    p.sub { color: var(--muted); margin-top: 0; }
+    .card { background: var(--card); border-radius: 14px; padding: 22px; margin-top: 20px;
+            box-shadow: 0 6px 24px rgba(0,0,0,.3); }
+    label.upload { display:inline-block; cursor:pointer; background:var(--accent); color:#04293a;
+            font-weight:600; padding:10px 18px; border-radius:8px; }
+    input[type=file] { display:none; }
+    button { background:var(--accent); color:#04293a; font-weight:600; border:none;
+             padding:10px 20px; border-radius:8px; cursor:pointer; font-size:1rem; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .imgbox { position:relative; display:inline-block; margin-top:16px; max-width:100%; }
+    .imgbox img { max-width:100%; border-radius:10px; display:block; }
+    .imgbox img.overlay { position:absolute; top:0; left:0; }
+    .row { display:flex; gap:24px; flex-wrap:wrap; }
+    .col { flex:1; min-width:260px; }
+    .badge { display:inline-block; padding:6px 14px; border-radius:999px; font-weight:700;
+             text-transform:capitalize; }
+    .clear { background:#14532d; color:#bbf7d0; }
+    .detected { background:#7f1d1d; color:#fecaca; }
+    .bar { height:10px; background:#334155; border-radius:6px; overflow:hidden; margin:4px 0 12px; }
+    .bar > div { height:100%; background:var(--accent); }
+    .muted { color: var(--muted); font-size:.9rem; }
+    .spinner { display:none; margin-top:14px; color:var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Breast Ultrasound Analysis</h1>
+    <p class="sub">ResNet34 U-Net — breast ultrasound lesion segmentation.</p>
+
+    <div class="card">
+      <label class="upload" for="file">Choose ultrasound image</label>
+      <input type="file" id="file" accept="image/*" />
+      <button id="run" disabled>Analyze</button>
+      <div class="spinner" id="spinner">Analyzing…</div>
+      <div class="muted" id="filename" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card" id="results" style="display:none;">
+      <div class="row">
+        <div class="col">
+          <h3>Image + Predicted Lesion</h3>
+          <div class="imgbox">
+            <img id="preview" />
+            <img id="overlay" class="overlay" />
+          </div>
+        </div>
+        <div class="col">
+          <h3>Prediction</h3>
+          <p><span id="status" class="badge"></span></p>
+          <p class="muted">Lesion area: <span id="area"></span>% of image</p>
+          <div id="confbox">
+            <div class="muted">Mask confidence — <span id="conf"></span></div>
+            <div class="bar"><div id="confbar"></div></div>
+          </div>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:18px;">
+        ⚠ Research/education demo only — not a medical device and not for diagnosis.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file');
+    const runBtn = document.getElementById('run');
+    const spinner = document.getElementById('spinner');
+    const results = document.getElementById('results');
+    let selectedFile = null;
+
+    fileInput.addEventListener('change', (e) => {
+      selectedFile = e.target.files[0] || null;
+      runBtn.disabled = !selectedFile;
+      document.getElementById('filename').textContent =
+        selectedFile ? selectedFile.name : '';
+    });
+
+    runBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      spinner.style.display = 'block';
+      runBtn.disabled = true;
+
+      const fd = new FormData();
+      fd.append('file', selectedFile);
+
+      try {
+        const res = await fetch('/predict', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({detail: res.statusText}));
+          throw new Error(err.detail || 'Request failed');
+        }
+        const data = await res.json();
+        render(data);
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        spinner.style.display = 'none';
+        runBtn.disabled = false;
+      }
+    });
+
+    function render(data) {
+      results.style.display = 'block';
+
+      const reader = new FileReader();
+      reader.onload = () => { document.getElementById('preview').src = reader.result; };
+      reader.readAsDataURL(selectedFile);
+
+      document.getElementById('overlay').src = data.mask_overlay_png;
+
+      const status = document.getElementById('status');
+      status.textContent = data.lesion_detected ? 'Lesion detected' : 'No lesion detected';
+      status.className = 'badge ' + (data.lesion_detected ? 'detected' : 'clear');
+
+      document.getElementById('area').textContent = data.lesion_area_percent;
+
+      const confPct = (data.mask_confidence * 100).toFixed(1);
+      document.getElementById('confbox').style.display =
+        data.lesion_detected ? 'block' : 'none';
+      document.getElementById('conf').textContent = confPct + '%';
+      document.getElementById('confbar').style.width = confPct + '%';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+name: Deploy to Hugging Face Space
+
+# Pushes the deploy/ folder (plus the model weights) to the HF Space on every
+# commit to main. Requires:
+#   - an HF Space (Docker SDK) named below
+#   - a repo secret HF_TOKEN: a HF access token with "write" scope
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # also allows manual runs from the Actions tab
+
+env:
+  HF_USERNAME: <your-hf-username>          # <-- EDIT ME
+  HF_SPACE: breast-lesion-segmentation
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true # pull best_model.pth content, not just the LFS pointer
+
+      - name: Assemble Space contents
+        # drop the weights in next to app.py.
+        run: cp best_model.pth deploy/
+
+      - name: Push to Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd deploy
+          git init -b main
+          git lfs install
+          git lfs track "*.pth"            # HF requires LFS for files > 10 MB
+          git add .
+          git -c user.name=github-actions -c user.email=actions@users.noreply.github.com \
+              commit -m "Deploy from GitHub ${GITHUB_SHA::7}"
+          git push --force "https://${HF_USERNAME}:${HF_TOKEN}@huggingface.co/spaces/${HF_USERNAME}/${HF_SPACE}" main
