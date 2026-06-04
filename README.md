@@ -1,10 +1,13 @@
-# BUSI Lesion Segmentation
+# Breast Ultrasound Lesion Segmentation
 
-Breast-ultrasound lesion segmentation on the [BUSI dataset](https://scholar.cu.edu.eg/?q=afahmy/pages/dataset)
+Breast-ultrasound lesion segmentation on the [BUSI dataset](https://www.kaggle.com/datasets/aryashah2k/breast-ultrasound-images-dataset)
 using a ResNet34 U-Net (PyTorch + segmentation-models-pytorch), served as a
 FastAPI app with a web frontend.
 
-> ⚠️ Research/education demo only. **Not a medical device, not for diagnosis.**
+## Preview
+The application is hosted at https://paridhi12-breast-ultrasound-lesion-segmentation.hf.space/
+<img width="1358" height="850" alt="image" src="https://github.com/user-attachments/assets/310654bc-8c70-405b-9310-79195ae50eb6" />
+
 
 ## Layout
 
