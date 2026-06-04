@@ -10,8 +10,8 @@ on:
   workflow_dispatch:   # also allows manual runs from the Actions tab
 
 env:
-  HF_USERNAME: <your-hf-username>          # <-- EDIT ME
-  HF_SPACE: breast-lesion-segmentation
+  HF_USERNAME: Paridhi12 
+  HF_SPACE: breast-ultrasound-lesion-segmentation
 
 jobs:
   deploy:
